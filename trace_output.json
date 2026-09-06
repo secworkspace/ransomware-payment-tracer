@@ -1,0 +1,42 @@
+[
+  {
+    "hop": 1,
+    "from_address": "bc1qq2euq8pw950klpjcawuy4uj39ym43hs6cfsegq",
+    "tx_id": "943f2d576ed8d9f388ba75eb82fe35cce29479b84121827ac368a5a94f44cf7a",
+    "to_address": "bc1qpx7vyv5tp7dm0g475ev527krg764t73dh77gls",
+    "amount_btc": 63.69996546,
+    "self": false
+  },
+  {
+    "hop": 2,
+    "from_address": "bc1qpx7vyv5tp7dm0g475ev527krg764t73dh77gls",
+    "tx_id": "6f8fcc22e2167b39f4dd5f47971a0f4e688c64064c2feaec2dae69f079c20c74",
+    "to_address": "bc1q20yetypzeukflzlg3qkgfjl8awtklq85t5vct3",
+    "amount_btc": 63.699849,
+    "self": false
+  },
+  {
+    "hop": 3,
+    "from_address": "bc1q20yetypzeukflzlg3qkgfjl8awtklq85t5vct3",
+    "tx_id": "e6fda8bb05c1ff9088a42370d23f801e9424a920fd27772d4938c580412381a0",
+    "to_address": "1Eq1WadiQw5PWr78waw8pt3rdU6KFMVqRc",
+    "amount_btc": 63.6998368,
+    "self": false
+  },
+  {
+    "hop": 4,
+    "from_address": "1Eq1WadiQw5PWr78waw8pt3rdU6KFMVqRc",
+    "tx_id": "85d1e7afc59dd4e5c5df225651a246c0896135c6fa9699d5951c51bf02f86043",
+    "to_address": "1Eq1WadiQw5PWr78waw8pt3rdU6KFMVqRc",
+    "amount_btc": 63.70164928,
+    "self": true
+  },
+  {
+    "hop": 5,
+    "from_address": "1Eq1WadiQw5PWr78waw8pt3rdU6KFMVqRc",
+    "tx_id": "753cfe765d77ab26c401b9579440e09d321983422d14374d90e0b90c74d0a190",
+    "to_address": "1L21V6B31zYcChfwDQjCaLoCwEGg6UQApV",
+    "amount_btc": 63.6989368,
+    "self": false
+  }
+]

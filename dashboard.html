@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Ransomware Payment Tracer</title>
+<style>
+    :root {
+        --bg: #0a0e14;
+        --surface: #131a24;
+        --surface-2: #1a2332;
+        --border: #263041;
+        --text: #e6edf3;
+        --text-dim: #7d8590;
+        --green: #3fb950;
+        --amber: #d29922;
+        --red: #f85149;
+        --accent: #58a6ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        background: radial-gradient(circle at 20% 0%, #10192b 0%, var(--bg) 55%);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        margin: 0;
+        padding: 2.5rem 3rem;
+        min-height: 100vh;
+    }
+
+    header {
+        margin-bottom: 2rem;
+        opacity: 0;
+        animation: fadeSlideIn 0.6s ease forwards;
+    }
+
+    header h1 {
+        font-size: 1.6rem;
+        font-weight: 600;
+        margin: 0 0 0.25rem;
+        background: linear-gradient(90deg, #e6edf3, var(--accent));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    header p {
+        color: var(--text-dim);
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1rem 1.2rem;
+        opacity: 0;
+        transform: translateY(8px);
+        animation: fadeSlideIn 0.5s ease forwards;
+        transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        border-color: var(--accent);
+    }
+
+    .stat-card .label {
+        font-size: 0.75rem;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 6px;
+    }
+
+    .stat-card .value {
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .flow-section {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        overflow-x: auto;
+        opacity: 0;
+        animation: fadeSlideIn 0.6s ease 0.15s forwards;
+    }
+
+    .flow-section .section-title {
+        font-size: 0.8rem;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 1.2rem;
+    }
+
+    .flow {
+        display: flex;
+        align-items: center;
+        min-width: max-content;
+        padding-bottom: 4px;
+    }
+
+    .node {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 110px;
+        flex-shrink: 0;
+        opacity: 0;
+        transform: scale(0.85);
+        animation: popIn 0.4s ease forwards;
+    }
+
+    .node-circle {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        margin-bottom: 8px;
+        position: relative;
+    }
+
+    .node-circle.low { background: rgba(63,185,80,0.15); border: 1.5px solid var(--green); }
+    .node-circle.medium { background: rgba(210,153,34,0.15); border: 1.5px solid var(--amber); }
+    .node-circle.high { background: rgba(248,81,73,0.15); border: 1.5px solid var(--red); }
+
+    .node-circle.high::after {
+        content: '';
+        position: absolute;
+        inset: -4px;
+        border-radius: 50%;
+        border: 1.5px solid var(--red);
+        animation: pulse 1.6s ease-out infinite;
+    }
+
+    .node-label {
+        font-size: 0.7rem;
+        color: var(--text-dim);
+        text-align: center;
+    }
+
+    .node-amount {
+        font-size: 0.72rem;
+        color: var(--text);
+        font-weight: 600;
+        margin-top: 2px;
+    }
+
+    .connector {
+        width: 40px;
+        height: 2px;
+        background: linear-gradient(90deg, var(--border), var(--accent));
+        flex-shrink: 0;
+        margin-bottom: 34px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .connector::after {
+        content: '';
+        position: absolute;
+        top: 0; left: -30%;
+        width: 30%;
+        height: 100%;
+        background: rgba(255,255,255,0.6);
+        animation: travel 2.2s linear infinite;
+    }
+
+    .hops {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .hop-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--green);
+        border-radius: 10px;
+        padding: 0.9rem 1.2rem;
+        opacity: 0;
+        transform: translateX(-8px);
+        animation: fadeSlideRight 0.4s ease forwards;
+        transition: background 0.2s ease;
+    }
+
+    .hop-card:hover { background: var(--surface-2); }
+    .hop-card.medium { border-left-color: var(--amber); }
+    .hop-card.high { border-left-color: var(--red); }
+
+    .hop-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .hop-addr {
+        font-family: 'SF Mono', Consolas, monospace;
+        font-size: 0.82rem;
+        color: var(--text-dim);
+    }
+
+    .hop-amount {
+        font-size: 1.05rem;
+        font-weight: 600;
+    }
+
+    .badge {
+        font-size: 0.68rem;
+        padding: 2px 9px;
+        border-radius: 20px;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+    }
+
+    .badge.low { background: rgba(63,185,80,0.15); color: var(--green); }
+    .badge.medium { background: rgba(210,153,34,0.15); color: var(--amber); }
+    .badge.high { background: rgba(248,81,73,0.15); color: var(--red); }
+
+    .flag-line {
+        color: var(--amber);
+        font-size: 0.8rem;
+        margin-top: 6px;
+    }
+
+    .loading {
+        color: var(--text-dim);
+        font-size: 0.9rem;
+    }
+
+    @keyframes fadeSlideIn {
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeSlideRight {
+        to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes popIn {
+        to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        100% { transform: scale(1.5); opacity: 0; }
+    }
+    @keyframes travel {
+        0% { left: -30%; }
+        100% { left: 100%; }
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>Ransomware Payment Tracer</h1>
+    <p>Colonial Pipeline / DarkSide case — live on-chain reconstruction</p>
+</header>
+<div style="display:flex; gap:10px; margin-bottom:2rem;">
+    <input
+        id="addressInput"
+        type="text"
+        placeholder="Paste a Bitcoin address to trace..."
+        value="bc1qq2euq8pw950klpjcawuy4uj39ym43hs6cfsegq"
+        style="flex:1; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:0.7rem 1rem; color:var(--text); font-family:monospace; font-size:0.85rem;"
+    >
+    <button
+        onclick="runTrace()"
+        style="background:var(--accent); color:#0a0e14; border:none; border-radius:8px; padding:0.7rem 1.4rem; font-weight:600; cursor:pointer;"
+    >Trace</button>
+</div>
+<div class="stats" id="stats"></div>
+
+<div class="flow-section">
+    <div class="section-title">Fund flow trace</div>
+    <div class="flow" id="flow"></div>
+</div>
+
+<div class="hops" id="hops">
+    <div class="loading">Loading trace data...</div>
+</div>
+
+<script>
+    function runTrace() {
+        const address = document.getElementById('addressInput').value.trim();
+        document.getElementById('hops').innerHTML = '<div class="loading">Tracing... this may take a few seconds.</div>';
+        document.getElementById('stats').innerHTML = '';
+        document.getElementById('flow').innerHTML = '';
+
+        fetch('/api/trace?address=' + encodeURIComponent(address))
+            .then(res => res.json())
+            .then(data => {
+                if (data.length === 0) {
+                    document.getElementById('hops').innerHTML =
+                        '<div class="loading">No outgoing transfers found for this address.</div>';
+                    return;
+                }
+                renderStats(data);
+                renderFlow(data);
+                renderHops(data);
+            })
+            .catch(() => {
+                document.getElementById('hops').innerHTML =
+                    '<div class="loading">Trace failed — check the address and try again.</div>';
+            });
+    }
+
+    // Run the default trace automatically when the page first loads
+    window.onload = runTrace;
+
+    function renderStats(data) {
+        const total = data[0]?.amount_btc?.toFixed(2) ?? '0';
+        const hops = data.length;
+        const flagged = data.filter(h => h.flags.length > 0).length;
+        const highRisk = data.filter(h => h.risk_level === 'High').length;
+
+        const stats = [
+            { label: 'Starting amount', value: total + ' BTC' },
+            { label: 'Hops traced', value: hops },
+            { label: 'Flagged hops', value: flagged },
+            { label: 'High risk hops', value: highRisk },
+        ];
+
+        const container = document.getElementById('stats');
+        stats.forEach((s, i) => {
+            const card = document.createElement('div');
+            card.className = 'stat-card';
+            card.style.animationDelay = (i * 0.08) + 's';
+            card.innerHTML = `<div class="label">${s.label}</div><div class="value">${s.value}</div>`;
+            container.appendChild(card);
+        });
+    }
+
+    function renderFlow(data) {
+        const flow = document.getElementById('flow');
+        data.forEach((hop, i) => {
+            const node = document.createElement('div');
+            node.className = 'node';
+            node.style.animationDelay = (i * 0.12) + 's';
+            const risk = hop.risk_level.toLowerCase();
+            node.innerHTML = `
+                <div class="node-circle ${risk}">${i + 1}</div>
+                <div class="node-label">${hop.to_address.slice(0, 8)}...</div>
+                <div class="node-amount">${hop.amount_btc.toFixed(2)} BTC</div>
+            `;
+            flow.appendChild(node);
+
+            if (i < data.length - 1) {
+                const connector = document.createElement('div');
+                connector.className = 'connector';
+                flow.appendChild(connector);
+            }
+        });
+    }
+
+    function renderHops(data) {
+        const container = document.getElementById('hops');
+        container.innerHTML = '';
+        data.forEach((hop, i) => {
+            const risk = hop.risk_level.toLowerCase();
+            const card = document.createElement('div');
+            card.className = 'hop-card ' + risk;
+            card.style.animationDelay = (i * 0.08) + 's';
+            card.innerHTML = `
+                <div class="hop-top">
+                    <div class="hop-addr">Hop ${hop.hop}: ${hop.from_address.slice(0,14)}... → ${hop.to_address.slice(0,14)}...</div>
+                    <span class="badge ${risk}">${hop.risk_level} risk</span>
+                </div>
+                <div class="hop-amount">${hop.amount_btc} BTC</div>
+                ${hop.flags.map(f => `<div class="flag-line">⚠ ${f}</div>`).join('')}
+            `;
+            container.appendChild(card);
+        });
+    }
+</script>
+
+</body>
+</html>
