@@ -15,7 +15,7 @@ A blockchain forensics tool that reconstructs how ransomware payments move acros
 
 ## Demo
 
-*(screenshot / GIF of the dashboard goes here)*
+![Dashboard screenshot](screenshots/dashboard.png)
 
 Try it yourself with the Colonial Pipeline seed address:
 ```
