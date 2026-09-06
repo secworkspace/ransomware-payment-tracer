@@ -16,6 +16,12 @@ A blockchain forensics tool that reconstructs how ransomware payments move acros
 ## Demo
 
 ![Dashboard screenshot](screenshots/dashboard.png)
+*Live trace of the Colonial Pipeline / DarkSide ransom payment, showing the full 5-hop fund-flow reconstruction.*
+
+The tracer also correctly distinguishes genuine fund movement from same-address wallet consolidation — a common blockchain pattern that a naive tracer would misread as a real transfer:
+
+![Self-consolidation detection](screenshots/self-consolidation-flag.png)
+*Hop 4 correctly flagged as "Self-consolidation" rather than a real transfer to a new party — see [METHODOLOGY.md](METHODOLOGY.md) for how this was identified and fixed.*
 
 Try it yourself with the Colonial Pipeline seed address:
 ```
